@@ -1,6 +1,6 @@
 <?php
-$string['pluginname'] = 'User role assignment';
-$string['dbtype'] = 'Database type';
+$string['pluginname'] = 'Affectation de role utilisateur';
+$string['dbtype'] = 'Type de base de donnee';
 $string['dbtype_desc'] = 'ADOdb database driver name, type of the external database engine.';
 $string['dbhost'] = 'Server IP name or number';
 $string['dbhost_desc'] = 'Type database server IP address or host name';

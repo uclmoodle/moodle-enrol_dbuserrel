@@ -1,26 +1,11 @@
 <?php
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
- * Database enrolment plugin settings and presets.
+ * User role assignment plugin settings and presets.
  *
  * @package    enrol
  * @subpackage dbuserrel
- * @copyright  ...2010 Petr Skoda {@link http://skodak.org}
+ * @copyright  Penny Leach <penny@catalyst.net.nz>
+ * @copyright  Maxime Pelletier <maxime.pelletier@educsa.org>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,10 +32,6 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configtext('enrol_dbuserrel/dbencoding', get_string('dbencoding', 'enrol_dbuserrel'), '', 'utf-8'));
     
-//    $settings->add(new admin_setting_configcheckbox('enrol_dbuserrel/useenroldatabase', get_string('useenroldatabase', 'enrol_dbuserrel'), get_string('useenroldatabase_desc', 'enrol_dbuserrel'), 0));
-    
-//    $settings->add(new admin_setting_configcheckbox('enrol_dbuserrel/useauthdb', get_string('useauthdb', 'enrol_dbuserrel'), get_string('useauthdb_desc', 'enrol_dbuserrel'), 0));
-
 	$settings->add(new admin_setting_configtext('enrol_dbuserrel/remoteenroltable', get_string('remoteenroltable', 'enrol_dbuserrel'), get_string('remoteenroltable_desc', 'enrol_dbuserrel'), ''));
 	
 	$settings->add(new admin_setting_heading('enrol_dbuserrel_remoteheader', get_string('remote_fields_mapping', 'enrol_dbuserrel'), ''));
@@ -66,7 +47,5 @@ if ($ADMIN->fulltree) {
 	$settings->add(new admin_setting_configtext('enrol_dbuserrel/remoteobjectuserfield', get_string('remoteobjectuserfield', 'enrol_dbuserrel'), get_string('remoteobjectuserfield_desc', 'enrol_dbuserrel'), ''));		
 
 	$settings->add(new admin_setting_configtext('enrol_dbuserrel/remoterolefield', get_string('remoterolefield', 'enrol_dbuserrel'), get_string('remoterolefield_desc', 'enrol_dbuserrel'), ''));		
-
-
 	// ============================================
 }
