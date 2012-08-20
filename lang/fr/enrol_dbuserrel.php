@@ -21,7 +21,6 @@ $string['remoterolefield'] = 'Champ role de la BD externe';
 $string['remotesubjectuserfield'] = 'Champ mentor de la BD externe';
 $string['remoteobjectuserfield'] = 'Champ eleve de la BD externe';
 $string['remoterolefield_desc'] = 'Nom du champ dans le BD externe qui contient le role';
-The name of the field in the remote table that we are using to match entries in the roles table.';
 $string['remotesubjectuserfield_desc'] = 'Nom du champ dans le BD externe qui contient l\identifiant du mentor';
 $string['remoteobjectuserfield_desc'] = 'Nom du champ dans le BD externe qui contient l\identifiant de l\'eleve';
 $string['server_settings'] = 'Configuration du serveur de la BD externe';
