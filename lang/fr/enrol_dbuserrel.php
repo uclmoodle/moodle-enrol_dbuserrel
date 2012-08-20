@@ -1,6 +1,6 @@
 <?php
 $string['pluginname'] = 'Affectation de role utilisateur';
-$string['pluginname_desc'] = 'You can use an external database (of nearly any kind) to control your mentor role. It is assumed your external database contains at least a field containing a student username, a mentor role, and a field containing a mentor username. These are compared against fields that you choose in the local role and user tables.';
+$string['pluginname_desc'] = 'Vous pouvez utiliser une base de donnee (pratiquement n\'importe quel SGBD) pour controler les roles entre utilisateurs. Votre BD externe doit contenir deux champs avec des noms d\'utilisateur et un champ avec un role. Ces valeurs sont compares avec les champs de Moodle que vous choisissez.';
 $string['dbtype'] = 'Type de base de donnee';
 $string['dbtype_desc'] = 'Nom du pilote de ADOdb, type de l\'engind de la BD externe.';
 $string['dbhost'] = 'Nom ou adresse IP du serveur externe';
