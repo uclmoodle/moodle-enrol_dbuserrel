@@ -1,5 +1,7 @@
 This plugin allows you to configure automatic relationships between users from an external database.  
 
+THIS PLUGIN IS IN BETA STATUS! BE CAREFULL WITH PRODUCTION ENVIRONMENT!
+
 Users familiar with enrol/db should have no problems configuring this.
 
 Plugin has been tested on 2.3.
