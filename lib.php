@@ -63,12 +63,13 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
 function setup_enrolments($verbose = false, &$user=null) {
     global $CFG, $DB;
 
-    if ($verbose) {
-        mtrace('Starting user enrolment synchronisation...');
-    }
+    mtrace('Starting user enrolment synchronisation...');
 
     // NOTE: if $this->db_init() succeeds you MUST remember to call
     // $this->enrol_disconnect() as it is doing some nasty vodoo with $CFG->prefix
+    if ($verbose) {
+	mtrace("Starting db_init()");
+    }
     $extdb = $this->db_init();
     if (!$extdb) {
         error_log('Error: [ENROL_DBUSERREL] Could not make a connection');
@@ -79,7 +80,7 @@ function setup_enrolments($verbose = false, &$user=null) {
     @set_time_limit(0);
     raise_memory_limit(MEMORY_HUGE);
 
-	// Store the field values in some shorter variable names to ease reading of the code.
+    // Store the field values in some shorter variable names to ease reading of the code.
     $flocalsubject  = strtolower($this->get_config('localsubjectuserfield'));
     $flocalobject   = strtolower($this->get_config('localobjectuserfield'));
     $flocalrole     = strtolower($this->get_config('localrolefield'));
@@ -90,7 +91,7 @@ function setup_enrolments($verbose = false, &$user=null) {
 	
 	
 
-	// TODO: Ensure that specifying a user works correctly
+    // TODO: Ensure that specifying a user works correctly
     if ($user) {
         $subjectfield = $extdb->quote($user->{$flocalsubject});
         $objectfield = $extdb->quote($user->{$flocalobject});
@@ -106,7 +107,9 @@ function setup_enrolments($verbose = false, &$user=null) {
 	// Execute query to get entries from external DB
     if ($rs = $extdb->Execute($sql)) {
 
-	mtrace($rs->RecordCount()." entries in the external table");
+        if ($verbose) {
+	    mtrace($rs->RecordCount()." entries in the external table");
+        }
 
 		// Unique identifier of the role assignment
         $uniqfield = $DB->sql_concat("r.$flocalrole", "'|'", "u1.$flocalsubject", "'|'", "u2.$flocalobject");
@@ -131,27 +134,38 @@ function setup_enrolments($verbose = false, &$user=null) {
 			$existing = array();
         }
 
-	mtrace(sizeof($existing)." role assignement entries from dbuserrel found in Moodle DB");
-		// Is there something in the remote table?
+        if ($verbose) {
+	    mtrace(sizeof($existing)." role assignement entries from dbuserrel found in Moodle DB");
+        }
+
+	// Is there something in the remote table?
         if (!$rs->EOF) {
 
             // MOODLE 1.X => $roles = $DB->get_records('role', array(), '', '', "$flocalrole, id");
 	    $roles = $DB->get_records('role', array(), '', "$flocalrole, id", 0, 0);
-	    mtrace(sizeof($roles)." role entries found in Moodle DB");
+	
+            if ($verbose) {
+	        mtrace(sizeof($roles)." role entries found in Moodle DB");
+            }
+
             $subjectusers = array(); // cache of mapping of localsubjectuserfield to mdl_user.id (for get_context_instance)
             $objectusers = array(); // cache of mapping of localsubjectuserfield to mdl_user.id (for get_context_instance)
             $contexts = array(); // cache
 
             $rels = array();
 			
-			// We loop through all the records of the remote table
+            // We loop through all the records of the remote table
             while ($row = $rs->FetchRow() ) {
-				// Convert encoding if necessary
+		// Convert encoding if necessary
 		//		$row = reset($row);
-				$row = $this->db_decode($row);
-print_r($row);
-mtrace("Role:".$row[$fremoterole]);
-				// TODO: Handle coma seperated values in remoteobject field
+		$row = $this->db_decode($row);
+
+                if ($verbose) {
+                    print_r($row);
+                    mtrace("Role:".$row[$fremoterole]);
+                }
+
+		// TODO: Handle coma seperated values in remoteobject field
                 // either we're assigning ON the current user, or TO the current user
                 $key = $row[$fremoterole] . '|' . $row[$fremotesubject] . '|' . $row[$fremoteobject];
 				
@@ -226,7 +240,6 @@ mtrace("Role:".$row[$fremoterole]);
      * @return null|ADONewConnection
      */
     protected function db_init() {
-	mtrace("Starting db_init()");
 
         global $CFG;
 
@@ -252,7 +265,6 @@ mtrace("Role:".$row[$fremoterole]);
             $extdb->Execute($this->get_config('dbsetupsql'));
         }
 
-	mtrace("Ending db_init()");
         return $extdb;
     }
 
