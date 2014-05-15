@@ -209,7 +209,7 @@ function setup_enrolments($verbose = false, &$user=null) {
                 }
 				
 				// Get the context of the object
-                $context = get_context_instance(CONTEXT_USER, $objectusers[$row[$fremoteobject]]);
+		$context = context_user::instance($objectusers[$row[$fremoteobject]]);
                 mtrace("Information: [" . $row[$fremotesubject] . "] assigning " . $row[$fremoterole] . " to " . $row[$fremotesubject]
                    . " on " . $row[$fremoteobject]);
                 // MOODLE 1.X => role_assign($roles[$row->{$fremoterole}]->id, $subjectusers[$row->{$fremotesubject}], 0, $context->id, 0, 0, 0, 'dbuserrel');

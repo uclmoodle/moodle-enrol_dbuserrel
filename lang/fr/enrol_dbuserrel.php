@@ -1,5 +1,5 @@
 <?php
-$string['pluginname'] = 'Affectation de role utilisateur';
+$string['pluginname'] = 'Affectation de role utilisateur BD';
 $string['pluginname_desc'] = 'Vous pouvez utiliser une base de donnee (pratiquement n\'importe quel SGBD) pour controler les roles entre utilisateurs. Votre BD externe doit contenir deux champs avec des noms d\'utilisateur et un champ avec un role. Ces valeurs sont compares avec les champs de Moodle que vous choisissez.';
 $string['dbtype'] = 'Type de base de donnee';
 $string['dbtype_desc'] = 'Nom du pilote de ADOdb, type de l\'engind de la BD externe.';
