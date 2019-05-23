@@ -19,7 +19,13 @@ if ($ADMIN->fulltree) {
 
     $options = array('', "access","ado_access", "ado", "ado_mssql", "borland_ibase", "csv", "db2", "fbsql", "firebird", "ibase", "informix72", "informix", "mssql", "mssql_n", "mssqlnative", "mysql", "mysqli", "mysqlt", "oci805", "oci8", "oci8po", "odbc", "odbc_mssql", "odbc_oracle", "oracle", "postgres64", "postgres7", "postgres", "proxy", "sqlanywhere", "sybase", "vfp");
     $options = array_combine($options, $options);
-    $settings->add(new admin_setting_configselect('enrol_dbuserrel/dbtype', get_string('dbtype', 'enrol_dbuserrel'), get_string('dbtype_desc', 'enrol_dbuserrel'), 'mysql', $options));
+    $settings->add(new admin_setting_configselect(
+        'enrol_dbuserrel/dbtype',
+        get_string('dbtype', 'enrol_dbuserrel'),
+        get_string('dbtype_desc', 'enrol_dbuserrel'),
+        'mysqli',
+        $options
+    ));
 
     $settings->add(new admin_setting_configtext('enrol_dbuserrel/dbhost', get_string('dbhost', 'enrol_dbuserrel'), get_string('dbhost_desc', 'enrol_dbuserrel'), 'localhost'));
 
@@ -35,9 +41,22 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_heading('enrol_dbuserrel_remoteheader', get_string('remote_fields_mapping', 'enrol_dbuserrel'), ''));
 
-    $settings->add(new admin_setting_configtext('enrol_dbuserrel/localsubjectuserfield', get_string('localsubjectuserfield', 'enrol_dbuserrel'), get_string('localsubjectuserfield_desc', 'enrol_dbuserrel'), 'username'));
+    // Set local object and subject options from list of fields advertised by available field entities
+    $settings->add(new admin_setting_configselect(
+        'enrol_dbuserrel/localsubjectuserfield',
+        get_string('localsubjectuserfield', 'enrol_dbuserrel'),
+        get_string('localsubjectuserfield_desc', 'enrol_dbuserrel'),
+        '',
+        enrol_dbuserrel_field_factory::get_mappable_fields_for_config_settings()
+    ));
 
-    $settings->add(new admin_setting_configtext('enrol_dbuserrel/localobjectuserfield', get_string('localobjectuserfield', 'enrol_dbuserrel'), get_string('localobjectuserfield_desc', 'enrol_dbuserrel'), 'username'));		
+    $settings->add(new admin_setting_configselect(
+        'enrol_dbuserrel/localobjectuserfield',
+        get_string('localobjectuserfield', 'enrol_dbuserrel'),
+        get_string('localobjectuserfield_desc', 'enrol_dbuserrel'),
+        '',
+        enrol_dbuserrel_field_factory::get_mappable_fields_for_config_settings()
+    ));
 
     $settings->add(new admin_setting_configtext('enrol_dbuserrel/localrolefield', get_string('localrolefield', 'enrol_dbuserrel'), get_string('localrolefield_desc', 'enrol_dbuserrel'), 'shortname'));	
 
