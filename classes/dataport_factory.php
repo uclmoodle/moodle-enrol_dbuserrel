@@ -18,19 +18,28 @@
  * (Role-based relationships) Dataport factory.
  *
  * @package    enrol_dbuserrel
- * @copyright  2019 Segun Babalola
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Factory for generating data port instances.
+ *
+ * @package    enrol_dbuserrel
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class enrol_dbuserrel_dataport_factory {
+
     /**
      * Creates a dataport object from supplied config
      *
-     * @param string $name Type of dataport required.
-     * @param array $config Dataport config.
-     * @return enrol_dbuserrel\interfaces\dataport_interface
+     * @param string $name Type of data port required (INTERNAL or EXTERNAL).
+     * @param array $config Data port config parameters.
+     *
+     * @return enrol_dbuserrel_dataport_interface
      *
      * @throws \Exception
      */
@@ -46,7 +55,7 @@ class enrol_dbuserrel_dataport_factory {
                 break;
             }
             default:
-                throw new \Exception('Attempt to create unknown type of data port (must be EXTERNAL or INTERNAL');
+                throw new \Exception( get_string('failure_unknownporttype', 'enrol_dbuserrel'));
         }
     }
 }

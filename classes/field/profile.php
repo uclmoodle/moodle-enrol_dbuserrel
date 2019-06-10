@@ -18,7 +18,7 @@
  * Profile record field.
  *
  * @package    enrol_dbuserrel
- * @copyright  2019 Segun Babalola
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,49 +26,43 @@ namespace enrol_dbuserrel\field;
 
 defined('MOODLE_INTERNAL') || die();
 
-Class profile implements \enrol_dbuserrel_field_interface {
-
-    private $field = array();
-    private static $mappable_profile_fields = array();
+/**
+ * Class profile
+ * @package enrol_dbuserrel\field
+ */
+class profile implements \enrol_dbuserrel_field_interface {
 
     /**
-     * Create new external (i.e. non-Moodle) dataport object instance.
+     * @var array|mixed
+     */
+    private $field = array();
+
+    /**
+     * @var array
+     */
+    private static $mappableprofilefields = array();
+
+    /**
+     * Create new field object to represent mappable user profile fields.
      *
+     * @param string|null $profilefielddbid
+     * @throws \dml_exception
      */
     public function __construct(?string $profilefielddbid) {
 
         if (strlen($profilefielddbid)) {
             $fieldid = trim($profilefielddbid);
             $this->set_mappable_profile_fields();
-            if (array_key_exists($fieldid, self::$mappable_profile_fields)) {
-                $this->field = self::$mappable_profile_fields[$fieldid];
+            if (array_key_exists($fieldid, self::$mappableprofilefields)) {
+                $this->field = self::$mappableprofilefields[$fieldid];
             }
         }
 
     }
 
-    public function get_single_table_definition(){
-        $sql = "SELECT enrol_dbuserrel_profile_user.id AS uid ";
-        $columns = array();
-
-        $profile_fields = self::get_mappable_profile_fields();
-        foreach ($profile_fields as $f) {
-            $columns[] = "(SELECT `data` FROM mdl_user_info_data WHERE userid=enrol_dbuserrel_profile_user.id AND fieldid="
-                . str_replace("f","", $f['id']) . ") AS "
-                . $f['id'];
-        }
-
-        $sql .= (count($columns) ? "," : "") . implode(", ", $columns) . " FROM {user} AS enrol_dbuserrel_profile_user";
-
-        return array(
-            "table_alias" => "enrol_dbuserrel_profile_fields",
-            "table_def" => "(" . $sql . ")");
-    }
-
-    public function get_userid_join_column() {
-        return "uid";
-    }
-
+    /**
+     * @return mixed|string|null
+     */
     public function get_field_name() {
         if (isset($this->field['id'])) {
             return $this->field['id'];
@@ -76,22 +70,32 @@ Class profile implements \enrol_dbuserrel_field_interface {
         return null;
     }
 
+    /**
+     * @param int|string $userid
+     * @return mixed|string
+     * @throws \coding_exception
+     */
     public function translate_moodle_userid_to_mapped_value($userid) {
         global $DB;
 
         // This translation attempt could fail because profile fields may be changed after setup, or may have been
         // setup before certain users were assigned values.
         try {
-            return $DB->get_field('user_info_data','data',array('userid' => $userid ));
-        } catch(\Exception $e) {
-            mtrace("Failed to translate Moodle user Id " . $userid . " into a " . self::$field['id']
-                . " profile field value");
+            return $DB->get_field('user_info_data', 'data', array('userid' => $userid ));
+        } catch (\Exception $e) {
+            mtrace(get_string('failure_uidtranslateprofile', 'enrol_dbuserrel',
+                ['u' => $userid, 'id' =>  $this->field['id']]));
         }
 
         return "";
     }
 
     // Todo: Improve implementation. Shouldn't have to loop to get value.
+    /**
+     * @param string $value
+     * @return int|string
+     * @throws \coding_exception
+     */
     public function get_equivalent_moodle_id($value) {
         global $DB;
 
@@ -102,17 +106,26 @@ Class profile implements \enrol_dbuserrel_field_interface {
             $userid = $DB->get_records_sql($sql);
 
             if (count($userid)) {
-                foreach ($userid as $u)
+                foreach ($userid as $u) {
                     return $u->userid;
+                }
             }
 
-        } catch(\Exception $e) {
-            mtrace('Unable to translate profile value ' . $value . ' to a Moodle user ID because ' . $e->getMessage());
+        } catch (\Exception $e) {
+            mtrace(get_string('failure_profilevaluetranslate', 'enrol_dbuserrel',
+                ['v' => $value, 'err' => $e->getMessage()]));
         }
 
         return "";
     }
 
+    /**
+     * Returns an array of the possible Moodle profile fields that can be presented to admin users as config
+     * options for mapping external relationship data.
+     *
+     * @return array
+     * @throws \dml_exception
+     */
     public static function get_mappable_profile_fields() {
         global $DB;
 
@@ -131,7 +144,7 @@ Class profile implements \enrol_dbuserrel_field_interface {
         foreach ($profilefields as $f) {
             $tempfield = (array)$f;
 
-            // workaround to avoid issues with purely numeric index
+            // Workaround to avoid issues with purely numeric index.
             $tempfield['id'] = 'f' . $tempfield['id'];
             $keyedfields['f' . $f->id] = $tempfield;
         }
@@ -139,7 +152,10 @@ Class profile implements \enrol_dbuserrel_field_interface {
         return $keyedfields;
     }
 
+    /**
+     * @throws \dml_exception
+     */
     private function set_mappable_profile_fields() {
-        self::$mappable_profile_fields = self::get_mappable_profile_fields();
+        self::$mappableprofilefields = self::get_mappable_profile_fields();
     }
 }

@@ -26,10 +26,14 @@ namespace enrol_dbuserrel\field;
 
 defined('MOODLE_INTERNAL') || die();
 
-Class user implements \enrol_dbuserrel_field_interface {
+/**
+ * Class user
+ * @package enrol_dbuserrel\field
+ */
+class user implements \enrol_dbuserrel_field_interface {
 
     private $field = array();
-    private static $mappable_profile_fields = array();
+    private static $mappableprofilefields = array();
 
     public function __construct(?string $fieldname) {
         if ((strlen($fieldname) > 0) && array_key_exists($fieldname, $this->get_mappable_profile_fields())) {
@@ -38,57 +42,73 @@ Class user implements \enrol_dbuserrel_field_interface {
 
     }
 
-    public function get_single_table_definition(){
-        return array("table_alias" => "enrol_dbuserrel_user_fields", "table_def" => "(select * from {user} )");
-    }
-
-    public function get_userid_join_column() {
-        return "id";
-    }
-
+    /**
+     * @return mixed|string
+     */
     public function get_field_name() {
         return $this->field['id'];
     }
 
+    /**
+     * @param int|string $userid
+     * @return mixed|string
+     * @throws \coding_exception
+     */
     public function translate_moodle_userid_to_mapped_value($userid) {
         global $DB;
 
         // This translation attempt could fail because profile fields may be changed after setup, or may have been
         // setup before certain users were assigned values.
         try {
-            return $DB->get_field('user',$this->field['id'],array('id' => $userid ));
-        } catch(\Exception $e) {
-            mtrace("Failed to translate Moodle user Id " . $userid . " into a " . $this->field['id']
-                . " user table field value");
+            return $DB->get_field('user', $this->field['id'], array('id' => $userid ));
+        } catch (\Exception $e) {
+            mtrace(get_string('failure_uidtranslate', 'enrol_dbuserrel',
+                ['u' => $userid, 'id' => $this->field['id']]));
         }
 
         return "";
     }
 
+    /**
+     * @param string $value
+     * @return int|mixed|string
+     * @throws \coding_exception
+     */
     public function get_equivalent_moodle_id($value) {
         global $DB;
 
         try {
             $configuredcolumn = self::get_mappable_profile_fields()[$this->field['id']]['id'];
-            return $DB->get_field('user', 'id', array($configuredcolumn => $value) );
+            return $DB->get_field('user', 'id', array($configuredcolumn => $value));
 
-        } catch(\Exception $e) {
-            mtrace('Unable to translate user table value ' . $value . ' to a Moodle user ID because ' . $e->getMessage());
+        } catch (\Exception $e) {
+            mtrace(get_string('failure_moodleuidtrl', 'enrol_dbuserrel',
+                ['v' => $value, 'err' => $e->getMessage()]));
         }
 
         return "";
     }
 
+    /**
+     * @return array
+     */
     public static function get_mappable_profile_fields() {
         return array(
-            'id' => ['id' => 'id', 'shortname' => 'id', 'name' => 'id', 'description' => 'ID column of Moodle user table'],
-            'idnumber' => ['id' => 'idnumber', 'shortname' => 'idnumber', 'name' => 'idnumber', 'description' => 'IDNumber column of Moodle user table'],
-            'email' => ['id' => 'email', 'shortname' => 'email', 'name' => 'email', 'description' => 'Email column of Moodle user table'],
-            'username' => ['id' => 'username', 'shortname' => 'username', 'name' => 'username', 'description' => 'Username column of Moodle user table']
+            'id' => ['id' => 'id', 'shortname' => 'id', 'name' => 'id',
+                'description' => 'ID column of Moodle user table'],
+            'idnumber' => ['id' => 'idnumber', 'shortname' => 'idnumber', 'name' => 'idnumber',
+                'description' => 'IDNumber column of Moodle user table'],
+            'email' => ['id' => 'email', 'shortname' => 'email', 'name' => 'email',
+                'description' => 'Email column of Moodle user table'],
+            'username' => ['id' => 'username', 'shortname' => 'username', 'name' => 'username',
+                'description' => 'Username column of Moodle user table']
         );
     }
 
+    /**
+     * Property setter
+     */
     private function set_mappable_profile_fields() {
-        self::$mappable_profile_fields = self::get_mappable_profile_fields();
+        self::$mappableprofilefields = self::get_mappable_profile_fields();
     }
 }

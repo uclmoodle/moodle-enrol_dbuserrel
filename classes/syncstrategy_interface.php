@@ -18,30 +18,42 @@
  * (Role-based relationships) Sync strategy interface.
  *
  * @package    enrol_dbuserrel
- * @copyright  2019 Segun Babalola
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * (Role-based relationships mapping) Strategy interface.
+ * This interface represents the contract that future sync strategies need to comply with to be used with the
+ * dbuserrel plugin.
+ *
+ * A default implementation has been provided, hopefully more will follow in future. Each avaialble strategy will
+ * need to be presented as a drop-dronw select option in the plugin admin screen.
+ *
+ * @package    enrol_dbuserrel
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 interface enrol_dbuserrel_syncstrategy_interface {
+
     /**
-     * Create new strategy object for syncing role-based relationships.
+     * Constructor.
      *
-     * @param array $config
+     * @param \enrol_dbuserrel_dataport_interface $externaldataport
+     * @param \enrol_dbuserrel_dataport_interface $internaldataport
      */
     public function __construct(
-        \enrol_dbuserrel_dataport_interface $external_dataport,
-        \enrol_dbuserrel_dataport_interface $internal_dataport
+        \enrol_dbuserrel_dataport_interface $externaldataport,
+        \enrol_dbuserrel_dataport_interface $internaldataport
     );
 
     /**
-     * Translates the value of the current field supplied as a parameter to the equivalent Moodle user.id value
+     * Embodies the sync algorithm for the straetgy.
      *
-     * @param array $newrelationships Source/new role-based relationships
-     * @param array $existingrelationships Sink/existing relationships (in Moodle)
+     * @param null|int $userid User Id filter.
+     * @param boolean $verbose Extent of tracing/info logging required.
      */
-    public function get_external_relationships_in_scope($user);
-
     public function sync_relationships($userid, $verbose);
 }

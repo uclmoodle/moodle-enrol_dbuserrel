@@ -18,7 +18,7 @@
  * Role-based relationship sync (default) strategy.
  *
  * @package    enrol_dbuserrel
- * @copyright  2019 Segun Babalola
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,116 +26,145 @@ namespace enrol_dbuserrel\syncstrategy;
 
 defined('MOODLE_INTERNAL') || die();
 
-Class defaultstrategy implements \enrol_dbuserrel_syncstrategy_interface {
+/**
+ * (Default) Sync strategy class.
+ * Hopefully alternative strategies will be implemented in future and present to users as drop-down config options.
+ *
+ * @package enrol_dbuserrel
+ * @copyright 2019 Segun Babalola <segun@babalola.com>
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class defaultstrategy implements \enrol_dbuserrel_syncstrategy_interface {
 
     private $externaldataport;
     private $internaldataport;
 
     public function __construct(
-        \enrol_dbuserrel_dataport_interface $external_dataport,
-        \enrol_dbuserrel_dataport_interface $internal_dataport) {
+        \enrol_dbuserrel_dataport_interface $externaldataport,
+        \enrol_dbuserrel_dataport_interface $internaldataport) {
 
-        $this->externaldataport = $external_dataport;
-        $this->internaldataport = $internal_dataport;
+        $this->externaldataport = $externaldataport;
+        $this->internaldataport = $internaldataport;
     }
 
+    /**
+     * Main/driving function of the strategy. Used to define the overall approach of the sync strategy.
+     *
+     * @param  int $userid Moodle db Id of the user for whom relationships should be synced.
+     * @param boolean $verbose
+     * @throws \Exception
+     */
     public function sync_relationships($userid, $verbose) {
 
-        // Todo: error_log and mtrace where necessary throughout plugin
-        // Todo: Move all static strings to language file
-
-        // Get relatinoships we want to work on from external source.
+        // Get relationships we want to work on from external source.
         $externaldata = $this->get_external_relationships_in_scope($userid);
 
         if ($verbose) {
             mtrace(count($externaldata) ." entries in the external table");
         }
 
-        // Only continue syn process if there are externally defined relationships. This behaviour can vary from
-        // sync strategy to sync strategy
+        // Only continue syn process if there are externally defined relationships.
+        // This behaviour can vary from sync strategy to sync strategy.
         if (count($externaldata)) {
 
-            // Get relationships that already exist in Moodle
+            // Get relationships that already exist in Moodle.
             $existing = $this->internaldataport->get_relationships_in_scope($userid, $userid);
 
             if ($verbose) {
-                mtrace(count($existing)." role assignment entries from dbuserrel found in Moodle DB");
+                mtrace(get_string('info_existingrelcount', 'enrol_dbuserrel', count($existing)));
             }
 
-            // Get all existing Moodle roles
+            // Get all existing Moodle roles (doing this once here for efficiency).
             $roles = $this->internaldataport->get_all_roles();
 
             if ($verbose) {
-                mtrace(sizeof($roles)." role entries found in Moodle DB");
+                mtrace(get_string('info_existingrolescount', 'enrol_dbuserrel', count($roles)));
             }
 
-            $subjectusers = array(); // cache of mapping of localsubjectuserfield to mdl_user.id (for get_context_instance)
-            $objectusers = array(); // cache of mapping of localsubjectuserfield to mdl_user.id (for get_context_instance)
+            $subjectusers = array(); // Cache mapping of localsubjectuserfield to mdl_user.id.
+            $objectusers = array(); // Cache mapping of localsubjectuserfield to mdl_user.id.
 
-            // Since there is data to process, get details of local and remote fields.
+            // Since there is data to process, get details of remote fields in preparation.
             $remoterolefield = $this->externaldataport->get_role_fieldname();
             $remotesubjectfield = $this->externaldataport->get_subject_fieldname();
             $remoteobjectfield = $this->externaldataport->get_object_fieldname();
 
             foreach ($externaldata as $key => $row) {
 
-                if ($verbose) {
-                    print_r($row);
-                }
+                // TODO: Handle coma seperated values in remoteobject field.
 
-                // TODO: Handle coma seperated values in remoteobject field
-
-                // First translate remote subject and object values into Moodle user IDs (and cache them).
+                // First translate remote subject and object values into equivalent Moodle user IDs (and cache them).
                 $remotesubjectvalue = $row[$remotesubjectfield];
                 $remoteobjectvalue = $row[$remoteobjectfield];
+
                 $remotesubjectuserid = $this->internaldataport->get_equivalent_moodle_id($remotesubjectvalue, 'subject');
                 $remoteobjectuserid = $this->internaldataport->get_equivalent_moodle_id($remoteobjectvalue, 'object');
 
                 $localkeyvalue = $row[$remoterolefield] . '|' . $remotesubjectuserid . '|' . $remoteobjectuserid;
 
-                // Check if the role is already assigned
+                // Check if the role is already assigned.
                 if (array_key_exists($localkeyvalue, $existing)) {
-                    // exists in moodle db already, unset it (so we can delete everything left)
+                    // Relationship already exists in moodle db, so unset it (so we can delete everything left).
                     unset($existing[$localkeyvalue]);
-                    error_log("Warning: Relationship [$localkeyvalue] exists in moodle already");
+
+                    if ($verbose) {
+                    	mtrace(get_string('warn_duplicaterel', 'enrol_dbuserrel', $localkeyvalue));
+                    }
+
                     continue;
                 }
 
-                // Ensure the remote role exists in Moodle
+                // Ensure the remote role exists in Moodle.
                 if (!array_key_exists($row[$remoterolefield], $roles)) {
-                    // role doesn't exist in moodle. skip.
-                    error_log("Warning: role " . $row[$remoterolefield] . " wasn't found in moodle.  skipping $key");
+                    // Role doesn't exist in moodle. skip.
+                    if ($verbose) {
+	                    mtrace(get_string('warn_unknownrole', 'enrol_dbuserrel',
+	                        ['k' =>  $key, 'f' => $row[$remoterolefield]]));
+	                }
+
                     continue;
                 }
 
-                // Ensure remote subject exists as a user in Moodle
+                // Ensure remote subject exists as a user in Moodle.
                 if (!array_key_exists($row[$remotesubjectfield], $subjectusers)) {
                     if (empty($remotesubjectuserid) || !$remotesubjectuserid) {
-                        error_log("Warning: [" . $row[$remotesubjectfield] . "] couldn't find subject user -- skipping $key");
-                        // couldn't find Moodle user record for remote subject, skip
+                    	if ($verbose) {
+                    	    mtrace(get_string('warn_unknownsub', 'enrol_dbuserrel',
+                    	        ['k' =>  $key, 'f' => $row[$remotesubjectfield]]));
+                    	}
+
+                        // Couldn't find Moodle user record for remote subject, skip.
                         continue;
                     } else {
                         $subjectusers[$row[$remotesubjectfield]] = $remotesubjectuserid;
                     }
                 }
 
-                // Ensure remote object exists as a user in Moodle
+                // Ensure remote object exists as a user in Moodle.
                 if (!array_key_exists($row[$remoteobjectfield], $objectusers)) {
                     if (empty($remoteobjectuserid) || !$remoteobjectuserid) {
-                        error_log("Warning: [" . $row[$remoteobjectfield] . "] couldn't find object user -- skipping $key");
-                        // couldn't find Moodle user record for remote object, skip
+
+                    	if ($verbose) {
+                    		    mtrace(get_string('warn_unknownobj', 'enrol_dbuserrel',
+                    		        ['k' =>  $key, 'f' => $row[$remoteobjectfield]]));
+                   		}
+
+                        // Couldn't find Moodle user record for remote object, skip.
                         continue;
                     } else {
                         $objectusers[$row[$remoteobjectfield]] = $remoteobjectuserid;
                     }
                 }
 
-                // Get the context of the object
+                // Get the relevant context object.
                 $context = \context_user::instance($objectusers[$row[$remoteobjectfield]]);
 
-                mtrace("Information: assigning " . $row[$remoterolefield] . " role " .
-                    " to remote subject " . $row[$remotesubjectfield] . " on remote object " . $row[$remoteobjectfield]);
+				if ($verbose) {
+	                mtrace(get_string('info_relcreated', 'enrol_dbuserrel',
+	                    ['o' => $row[$remoteobjectfield], 's' =>  $row[$remotesubjectfield], 'r' => $row[$remoteobjectfield]]));
+				}
 
+                // Assign the role!
                 role_assign(
                     $roles[$row[$remoterolefield]]->id,
                     $subjectusers[$row[$remotesubjectfield]],
@@ -144,14 +173,20 @@ Class defaultstrategy implements \enrol_dbuserrel_syncstrategy_interface {
                     0,
                     ''
                 );
-            } // end foreach external record.
 
-            mtrace("Deleting old role assignations");
+            } // End foreach external record.
 
-            // Delete existing roles that are no longer present in remote data source
+			if ($verbose) {
+	            mtrace(get_string('info_deletingrels', 'enrol_dbuserrel'));
+	        }
+
+            // Delete existing roles that are no longer present in remote data source.
             foreach ($existing as $key => $assignment) {
                 if ($assignment['component'] == 'enrol_dbuserrel') {
-                    mtrace("Information: [$key] unassigning $key");
+
+                	if ($verbose) {
+                    	mtrace("Information: [$key] unassigning $key");
+                    }
 
                     role_unassign(
                         $assignment['roleid'],
@@ -162,15 +197,25 @@ Class defaultstrategy implements \enrol_dbuserrel_syncstrategy_interface {
                     );
                 }
             }
+
         } // End check on existence of external data.
+
+        $this->externaldataport->shutdown();
     }
 
-    public function get_external_relationships_in_scope($userid) {
+
+    /**
+     * Main/driving function of the strategy. Used to define the overall approach of the sync strategy.
+     *
+     * @param   int $userid Moodle db Id of the user for whom relationships should be synced.
+     * @return  array An array of (external) relationships to be synced.
+     */
+    private function get_external_relationships_in_scope($userid) {
         $localobjectvalue = "";
         $localsubjectvalue = "";
 
         if ($userid) {
-            // Get only those externally defined relationships involving this user.
+            // Get only those relationships involving this user.
             // First need to translate the user ID value into equivalent values using definition of local fields.
             $localobjectvalue = $this->internaldataport->get_equivalent_moodle_id($userid, "object");
             $localsubjectvalue = $this->internaldataport->get_equivalent_moodle_id($userid, "subject");

@@ -4,10 +4,11 @@ THIS PLUGIN IS IN BETA STATUS! BE CAREFULL WITH PRODUCTION ENVIRONMENT!
 
 Users familiar with enrol/db should have no problems configuring this.
 
-Plugin has been tested on 2.3 and 2.6.
+Plugin has been tested on 2.3, 2.6 and 3.7.
 
 This plugin was first developed by Penny Leach <penny@catalyst.net.nz> for Moodle 1.9
-by I modified it to work with Moodle 2.3
+then modified by Maxime Pelletier <maxime.pelletier@educsa.org> to work with Moodle 2.3, then later modified
+by Segun Babalola <segun@babalola.com> to allow profile files to be used for mapping relationships.
 
 This is my first experience with Moodle plugin development, so your comments are more than
 welcome. Useless to say that you use this piece of code at your own risk :)
@@ -24,8 +25,10 @@ d. role already in Moodle
 
 1. Download all the files in the directory {MOODLE_DIR}/enrol/dbuserrel (using git, GitHub website, or anything else)
 2. Go to http://{MOODLE_URL}/admin to complete the installation
-3. Fill all parameters using Moodle plugin administration interface (http://{MOODLE_URL}/admin/settings.php?section=enrolsettingsdbuserrel
-4. Setup a cron job to execute {MOODLE_DIR}/enrol/dbuserrel/cli/sync.php (add -v for more output, and redirecte output to log file)
+3. Fill all parameters using Moodle plugin administration interface
+   (http://{MOODLE_URL}/admin/settings.php?section=enrolsettingsdbuserrel
+4. Setup a cron job to execute {MOODLE_DIR}/enrol/dbuserrel/cli/sync.php
+   (add -v for more output, and redirecte output to log file)
 
 Feel free to send me any comments/suggestions
 

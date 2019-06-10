@@ -1,4 +1,19 @@
-<?php  // $Id$
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * User role assignment plugin.
  *
@@ -6,6 +21,7 @@
  *
  * @package    enrol
  * @subpackage dbuserrel
+ * @copyright  Segun Babalola <segun@babalola.com>
  * @copyright  Penny Leach <penny@catalyst.net.nz>
  * @copyright  Maxime Pelletier <maxime.pelletier@educsa.org>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -24,7 +40,7 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
 
     private function setup() {
         try {
-            // Set data ports (internal, i.e. Moodle) and external
+            // Set data ports (internal, i.e. Moodle) and external.
             $this->set_external_dataport(enrol_dbuserrel_dataport_factory::create('EXTERNAL', [
                 'dbhost' => $this->get_config('dbhost'), 'dbname' => $this->get_config('dbname'),
                 'dbtype' => $this->get_config('dbtype'), 'dbuser' => $this->get_config('dbuser'),
@@ -42,14 +58,15 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
                 'localrole' => $this->get_config('localrolefield')
             ]));
 
-            // Configure strategy (only default exists for now).
+            // Configure strategy (only default exists for now), hopefully others will be added in future.
             $this->syncstrategy = new enrol_dbuserrel\syncstrategy\defaultstrategy(
                 $this->get_external_dataport(),
                 $this->get_internal_dataport()
             );
 
         } catch (\Exception $e) {
-            error_log('Error: [ENROL_DBUSERREL] Initialisation failed : ' . $e->getMessage());
+            error_log(get_string('failure_initialisation', 'enrol_dbuserrel', $e->getMessage()));
+            throw new \Exception(get_string('failure_initialisation', 'enrol_dbuserrel', $e->getMessage()));
         }
     }
 
@@ -67,7 +84,7 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
             return true;
         }
 
-        //TODO: connect to external system and make sure no users are to be enrolled in this course
+        //TODO: connect to external system and make sure no users are to be enrolled in this course.
         return false;
     }
 
@@ -89,28 +106,28 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
     }
 
 
-    /*
+    /**
      * MAIN FUNCTION
      * For the given user, let's go out and look in an external database
      * for an authoritative list of relationships, and then adjust the
      * local Moodle assignments to match.
+     *
      * @param bool $verbose
+     * @param mixed $user
+     *
      * @return int 0 means success, 1 db connect failure, 2 db read failure
+     * @throws \Exception
      */
-
     function setup_enrolments($verbose = false, &$user=null) {
         try {
             $this->setup();
 
-            mtrace('Starting user enrolment synchronisation...');
-
-            // NOTE: if $this->db_init() succeeds you MUST remember to call
-            // $this->enrol_disconnect() as it is doing some nasty vodoo with $CFG->prefix
             if ($verbose) {
+            	mtrace('Starting user enrolment synchronisation...');
                 mtrace("Starting db_init()");
             }
 
-            // we may need a lot of memory here
+            // We may need a lot of memory here.
             @set_time_limit(0);
             raise_memory_limit(MEMORY_HUGE);
 
@@ -123,7 +140,7 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
 
             $this->syncstrategy->sync_relationships($userid, $verbose);
         } catch(\Exception $e) {
-            mtrace('Failed to sync user relationships because ' . $e->getMessage());
+            mtrace(get_string('failure_sync_operation', 'enrol_dbuserrel', $e->getMessage()));
         }
     }
 
@@ -144,6 +161,6 @@ class enrol_dbuserrel_plugin extends enrol_plugin {
         $this->externaldataport = $dp;
     }
 
-} // end of class
+} // End of class.
 
 

@@ -15,26 +15,57 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External (role-based) relationship dataport implementation.
+ * External (role-based) relationship data port implementation.
  *
  * @package    enrol_dbuserrel
- * @copyright  2019 Segun Babalola
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_interface {
+/**
+ * Class enrol_dbuserrel_dataport_external
+ *
+ * @package    enrol_dbuserrel
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ */
+class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_interface {
 
+    /**
+     * @var ADONewConnection|null
+     */
     private $db;
+
+    /**
+     * @var string
+     */
     private $table;
 
+    /**
+     * @var string
+     */
     private $remoterolefield;
+
+    /**
+     * @var string
+     */
     private $remotesubject;
+
+    /**
+     * @var string
+     */
     private $remoteobject;
 
     /**
-     * Create new external (i.e. non-Moodle) dataport object instance.
+     * @var bool
+     */
+    private $debugging = false;
+
+    /**
+     * Create new external (i.e. non-Moodle) data port object instance.
      *
      * @param array $config
      * @throws \Exception
@@ -49,13 +80,15 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
                 $config['debugdb']
             );
 
+            $this->debugging = $config['debugdb'];
+
             $this->table = $config['table'];
 
             if (isset($config['remotesubject'])) {
                 $this->set_remote_subject(trim(strtolower($config['remotesubject'])));
 
                 if (!is_string($this->remotesubject) || (strlen($this->remotesubject) < 1)) {
-                    throw new \Exception('Attempt to set invalid type for remote subject');
+                    throw new \Exception(get_string('failure_remotesubtype', 'enrol_dbuserrel'));
                 }
             }
 
@@ -63,7 +96,7 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
                 $this->set_remote_object(trim(strtolower($config['remoteobject'])));
 
                 if (!is_string($this->remoteobject) || (strlen($this->remoteobject) < 1)) {
-                    throw new \Exception('Attempt to set invalid type for remote object');
+                    throw new \Exception(get_string('failure_remoteobtype', 'enrol_dbuserrel'));
                 }
             }
 
@@ -71,19 +104,24 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
                 $this->remoterolefield = trim(strtolower($config['remoterole']));
 
                 if (!is_string($this->remoterolefield) || (strlen($this->remoterolefield) < 1)) {
-                    throw new \Exception('Attempt to set invalid remote role');
+                    throw new \Exception(get_string('failure_remoteroletype', 'enrol_dbuserrel'));
                 }
             }
 
         } catch (\Exception $e) {
-            throw new \Exception('Failed to initialise external database. because {$a}');
+            throw new \Exception(get_string('failure_dbinit', 'enrol_dbuserrel', $e->getMessage()));
         }
 
         if ($this->db == null) {
-            throw new \Exception('Failed to initialise external database. Error: [ENROL_DBUSERREL] Could not make a connection. DB resource is null after init.');
+            throw new \Exception(get_string('failure_dbconn', 'enrol_dbuserrel'));
         }
     }
 
+    /**
+     * @param string|null $subjectfilter
+     * @param string|null $objectfilter
+     * @return array|null
+     */
     public function get_relationships_in_scope(?string $subjectfilter, ?string $objectfilter) {
         $filter = "";
         $externaldata = array();
@@ -98,47 +136,65 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
             "t.* FROM " . $this->table . " t WHERE 1=1 " . ($filter ? " AND (" . $filter . ")" : "");
         $data = $this->db->GetAll($sql);
 
-        foreach ($data as $record) {
-            $externaldata[$record['uniq']] = $record;
+        if (is_array($data)) {
+            foreach ($data as $record) {
+                $externaldata[$record['uniq']] = $record;
+            }
         }
-
 
         // Todo: Cleanup external DB connection?
         return $externaldata;
     }
 
-    public function sanitise_literal_for_comparison(string $value) {
-        return $this->db->quote($value);
-    }
-
-    public function construct_unique_relationship_key() {
-
-    }
-
+    /**
+     * @param string $value
+     * @param string $source
+     * @return int|null
+     */
     public function get_equivalent_moodle_id($value, $source) {
         return $this->remote{$source}::get_equivalent_moodle_id($value);
     }
 
+    /**
+     * @return array
+     * @throws Exception
+     */
     public function get_all_roles() {
         try {
             return $this->db->GetAll("SELECT DISTINCT " . $this->remoterolefield . " AS id," . $this->remoterolefield .
                 " FROM " . $this->table);
         } catch (\Exception $e) {
-            throw new \Exception('Failed to get all roles from remote data source: ' . $e->getMessage());
+            throw new \Exception(get_string('failure_remoterolefetch', 'enrol_dbuserrel', $e->getMessage()));
         }
     }
 
-
+    /**
+     * @return string
+     */
     public function get_role_fieldname() {
         return $this->remoterolefield;
     }
 
+    /**
+     * @return string
+     */
     public function get_subject_fieldname() {
         return $this->remotesubject;
     }
 
+    /**
+     * @return string
+     */
     public function get_object_fieldname() {
         return $this->remoteobject;
+    }
+
+    /**
+     * @param string $value
+     * @return mixed
+     */
+    private function sanitise_literal_for_comparison(string $value) {
+        return $this->db->quote($value);
     }
 
     /**
@@ -152,14 +208,14 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
 
         require_once($CFG->libdir.'/adodb/adodb.inc.php');
 
-        // Connect to the external database (forcing new connection)
+        // Connect to the external database (forcing new connection).
         $extdb = ADONewConnection($dbtype);
         if ($debug) {
             $extdb->debug = true;
-            ob_start(); //start output buffer to allow later use of the page headers
+            ob_start(); // Start output buffer to allow later use of the page headers.
         }
 
-        // the dbtype my contain the new connection URL, so make sure we are not connected yet
+        // The dbtype my contain the new connection URL, so make sure we are not connected yet.
         if (!$extdb->IsConnected()) {
             $result = $extdb->Connect($host, $username, $password, $dbname, true);
             if (!$result) {
@@ -175,14 +231,40 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
         return $extdb;
     }
 
-    // Todo: check if these functions are needed
+    /**
+     * Close connection
+     */
+    public function shutdown() {
+        // NOTE: if $this->db_init() succeeds you MUST remember to call.
+        // $this->enrol_disconnect() as it is doing some nasty vodoo with $CFG->prefix.
+        try {
+            if ($this->db->IsConnected()) {
+                $this->db->Disconnect();
+            }
+        } catch (\Exception $e) {
+            mtrace('Failed to shutdown external data port because ' . $e->getMessage());
+        }
+
+        if ($this->debugging) {
+            mtrace(ob_get_contents());
+        }
+
+        ob_end_clean();
+    }
+
+    // Todo: check if these functions are needed.
+
+    /**
+     * @param $text
+     * @return array
+     */
     private function db_encode($text) {
         $dbenc = $this->get_config('dbencoding');
         if (empty($dbenc) or $dbenc == 'utf-8') {
             return $text;
         }
         if (is_array($text)) {
-            foreach($text as $k=>$value) {
+            foreach ($text as $k => $value) {
                 $text[$k] = $this->db_encode($value);
             }
             return $text;
@@ -191,13 +273,17 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
         }
     }
 
+    /**
+     * @param $text
+     * @return array
+     */
     private function db_decode($text) {
         $dbenc = $this->get_config('dbencoding');
         if (empty($dbenc) or $dbenc == 'utf-8') {
             return $text;
         }
         if (is_array($text)) {
-            foreach($text as $k=>$value) {
+            foreach ($text as $k => $value) {
                 $text[$k] = $this->db_decode($value);
             }
             return $text;
@@ -206,8 +292,12 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
         }
     }
 
+    /**
+     * @param $text
+     * @return mixed
+     */
     private function db_addslashes($text) {
-        // using custom made function for now
+        // Using custom made function for now.
         if ($this->get_config('dbsybasequoting')) {
             $text = str_replace('\\', '\\\\', $text);
             $text = str_replace(array('\'', '"', "\0"), array('\\\'', '\\"', '\\0'), $text);
@@ -217,19 +307,30 @@ Class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
         return $text;
     }
 
+    /**
+     * @return string
+     */
     private function get_remote_subject(): string {
         return $this->remotesubject;
     }
 
+    /**
+     * @param string $o
+     */
     private function set_remote_subject(string $o) {
         $this->remotesubject = $o;
     }
 
-
+    /**
+     * @return string
+     */
     private function get_remote_object(): string {
         return $this->remoteobject;
     }
 
+    /**
+     * @param string $o
+     */
     private function set_remote_object(string $o) {
         $this->remoteobject = $o;
     }

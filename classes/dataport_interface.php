@@ -15,31 +15,82 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * (Role-based relationships) Dataport interface.
+ * (Role-based relationships) Data port interface.
  *
  * @package    enrol_dbuserrel
- * @copyright  2019 Segun Babalola
+ * @copyright  2019 Segun Babalola <segun@babalola.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Represents external and internal sources (or ports for) of relationship data.
+ *
+ * @package   enrol_dbuserrel
+ * @copyright 2019 Segun Babalola <segun@babalola.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 interface enrol_dbuserrel_dataport_interface {
+
     /**
-     * Create new dataport instance.
+     * Constructor.
      *
-     * @param array $config
+     * @param array $config Configuration info.
      */
     public function __construct(array $config);
+
+    /**
+     * Gets a list of all the relationships from the data source that should be considered (given the input filter).
+     *
+     * @param string|null $subjectfilter Typically Moodle user Id.
+     * @param string|null $objectfilter Typically Moodle user Id.
+     * @return array|null Array of relationships present in the data source this data port is connected to.
+     */
     public function get_relationships_in_scope(?string $subjectfilter, ?string $objectfilter);
 
+    /**
+     * Translates the Id of a object or subject to a Moodle DB user Id.
+     *
+     * @param string $value The input Id value to be translated
+     * @param string $source Indicates type of the input Id value, i.e. "subject" or "object".
+     * @return int|null The equivalent Moodle DB user Id.
+     */
     public function get_equivalent_moodle_id($value, $source);
-    public function sanitise_literal_for_comparison(string $value);
 
-    public function construct_unique_relationship_key();
+    /**
+     * Gets all known roles from the data source that may be used to define/process relationships.
+     *
+     * @return array Roles, expressed as associative array with Id and name pairs for each role.
+     */
     public function get_all_roles();
 
+    /**
+     * Returns the name of the field/element used by the data source to hold role name.
+     * This field name is useful for accessing individual data items in the results returned by get_relationships_in_scope().
+     *
+     * @return string
+     */
     public function get_role_fieldname();
+
+    /**
+     * Returns the name of the field/element used by the data source to hold subject.
+     * This field name is useful for accessing individual data items in the results returned by get_relationships_in_scope().
+     *
+     * @return string
+     */
     public function get_subject_fieldname();
+
+    /**
+     * Returns the name of the field/element used by the data source to hold object.
+     * This field name is useful for accessing individual data items in the results returned by get_relationships_in_scope().
+     *
+     * @return string
+     */
     public function get_object_fieldname();
+
+    /**
+     * Opportunity to do any cleanup needed after using data ports.
+     */
+    public function shutdown();
 }

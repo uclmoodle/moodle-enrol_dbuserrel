@@ -1,4 +1,19 @@
-<?php 
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * CLI sync for full external database synchronisation.
  *
@@ -20,10 +35,15 @@
  */
 define('CLI_SCRIPT', true);
 	
-require(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php');// global moodle config file.
+require(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php');// Global Moodle config file.
 require_once($CFG->libdir.'/clilib.php');
-// now get cli options
-list($options, $unrecognized) = cli_get_params(array('verbose'=>false, 'help'=>false), array('v'=>'verbose', 'h'=>'help'));
+
+// Now get cli options.
+list($options, $unrecognized) = cli_get_params(
+    array('verbose' => false, 'help' => false),
+    array('v' => 'verbose', 'h' => 'help')
+);
+
 if ($unrecognized) {
 	$unrecognized = implode("\n  ", $unrecognized);
 	cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
@@ -47,12 +67,12 @@ Sample cron entry:
 }
 
 if (!enrol_is_enabled('dbuserrel')) {
-	echo('enrol_dbuserrel plugin is disabled, sync is disabled'."\n");
+	echo(get_string('plugindisabled', 'enrol_dbuserrel') . "\n");
     	exit(1);
 }
 
-if(!empty($_SERVER['GATEWAY_INTERFACE'])){
-        error_log("should not be called from apache!");
+if (!empty($_SERVER['GATEWAY_INTERFACE'])){
+        error_log(get_string('apachedisallowed', 'enrol_dbuserrel'));
         exit(1);
 }
 	
