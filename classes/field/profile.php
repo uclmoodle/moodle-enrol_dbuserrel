@@ -105,7 +105,9 @@ class profile implements \enrol_dbuserrel_field_interface {
 
             $userid = $DB->get_records_sql($sql);
 
-            if (count($userid)) {
+            // Segun Babalola July 12, 2019.
+            // Now that mandatory and unique requirements are removed, ensure exactly one matching record.
+            if (count($userid) === 1) {
                 foreach ($userid as $u) {
                     return $u->userid;
                 }
@@ -133,8 +135,10 @@ class profile implements \enrol_dbuserrel_field_interface {
             'user_info_field',
             array(
                 'datatype' => 'text',
-                'forceunique' => 1,
-                'required' => 1
+                // Segun Babalola, July 12, 2019.
+                // Removed unique and non-empty requirements as request by Alistair Spark.
+                // 'forceunique' => 1,
+                // 'required' => 1,
             ),
             'sortorder', "id, shortname, name, description", 0, 0
         );
