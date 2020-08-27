@@ -45,6 +45,7 @@ $string['settingsheaderdb'] = 'External database connection';
 $string['remoteenroltable'] = 'Remote user enrolment table';
 $string['remoteenroltable_desc'] = 'Specify the name of the table that contains list of user enrolments. Empty means no user enrolment sync.';
 
+$string['dbuserrelsynctask'] = 'DB User role assignment sync task'; // CATALYST CUSTOM.
 $string['failure_initialisation'] = 'Error: [ENROL_DBUSERREL] Initialisation/setup failed : {$a}';
 $string['failure_sync_operation'] = 'Failed to sync user relationships because {$a}';
 $string['plugindisabled'] = 'enrol_dbuserrel plugin is disabled, sync is disabled';
