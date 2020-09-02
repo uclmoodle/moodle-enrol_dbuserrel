@@ -249,7 +249,8 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
             mtrace(ob_get_contents());
         }
 
-        ob_end_clean();
+        // CATALYST - Commented out as it was causing issue with the mtrace output being written to task logs table.
+        // ob_end_clean();
     }
 
     // Todo: check if these functions are needed.
