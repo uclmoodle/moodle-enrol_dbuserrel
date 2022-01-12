@@ -123,6 +123,7 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
      * @return array|null
      */
     public function get_relationships_in_scope(?string $subjectfilter, ?string $objectfilter) {
+        global $DB;
         $filter = "";
         $externaldata = array();
 
@@ -131,10 +132,11 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
                 " OR " . $this->remotesubject . "=" . $this->sanitise_literal_for_comparison($subjectfilter);
         }
 
-        $sql = "SELECT " .
-            $this->db->concat($this->remoterolefield, "'|'", $this->remotesubject, "'|'", $this->remoteobject) . " AS uniq," .
-            "t.* FROM " . $this->table . " t WHERE 1=1 " . ($filter ? " AND (" . $filter . ")" : "");
+        $sql = $DB->get_records_sql('SELECT ? AS uniq, ? * FROM ?, ? WHERE 1=1, ? '. ($filter ? " AND (" . $filter . ")" : ""),[$this->db->concat($this->remoterolefield, "'|'", $this->remotesubject, "'|'", $this->remoteobject), 't', $this->table]);
         $data = $this->db->GetAll($sql);
+
+        $sql = "SELECT ? AS uniq, ? * FROM ?, ? WHERE 1=1 " . ($filter ? " AND (" . $filter . ")" : "");
+        $data = $this->db->GetAll($sql,[$this->db->concat($this->remoterolefield, "'|'", $this->remotesubject , "'|'", $this->remoteobject), 't', $this->table]);
 
         if (is_array($data)) {
             foreach ($data as $record) {
@@ -161,8 +163,8 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
      */
     public function get_all_roles() {
         try {
-            return $this->db->GetAll("SELECT DISTINCT " . $this->remoterolefield . " AS id," . $this->remoterolefield .
-                " FROM " . $this->table);
+            return $this->db->GetAll('SELECT DISTINCT ? AS id, ? FROM {?}',[$this->remoterolefield, $this->remoterolefield, $this->table]);
+
         } catch (\Exception $e) {
             throw new \Exception(get_string('failure_remoterolefetch', 'enrol_dbuserrel', $e->getMessage()));
         }

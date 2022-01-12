@@ -100,10 +100,10 @@ class profile implements \enrol_dbuserrel_field_interface {
         global $DB;
 
         try {
-            $sql = "SELECT userid FROM {user_info_data} WHERE data ='" . $value . "' AND fieldid = " .
-                str_replace("f", "", $this->field['id']);
 
-            $userid = $DB->get_records_sql($sql);
+            $replace_string = str_replace("f", "", $this->field['id']);
+            $userid = $DB->get_records_sql('SELECT userid FROM {user_info_data} WHERE id = :value AND fieldid = :string',
+            ['id' => $value, 'string' => $replace_string]);
 
             // Segun Babalola July 12, 2019.
             // Now that mandatory and unique requirements are removed, ensure exactly one matching record.
@@ -111,6 +111,7 @@ class profile implements \enrol_dbuserrel_field_interface {
                 foreach ($userid as $u) {
                     return $u->userid;
                 }
+
             }
 
         } catch (\Exception $e) {

@@ -160,6 +160,9 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
                 ($subjectfilter ? " AND localsubject.id=" . $subjectfilter : "") .
                 ($objectfilter ? " AND localobject.id=" . $objectfilter : "");
 
+            $sql = 'SELECT ? FROM ? WHERE ? AND ? AND ? AND ? AND ? AND ?, ? AND ?, ? AND ?',[implode(",", array_unique($columns)), implode(",", array_unique($tables)), ra.roleid = r.id,ra.component = 'enrol_dbuserrel', c.contextlevel = CONTEXT_USER, c.id = ra.contextid, ra.userid = localsubject.id,c.instanceid = localobject.id, ($subjectfilter ? " AND localsubject.id=" . $subjectfilter : ""),
+            ($objectfilter ? " AND localobject.id=" . $objectfilter : "")];
+
             $existing = $DB->get_records_sql($sql);
 
             foreach ($existing as $record) {
