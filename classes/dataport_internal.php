@@ -148,20 +148,21 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
             $tables[] = " {user} AS localsubject ";
             $tables[] = " {user} AS localobject ";
 
-            $sql = "SELECT " .
-                implode(",", array_unique($columns)) .
-                " FROM " .
-                implode(",", array_unique($tables)) .
-                " WHERE " .
-                " ra.roleid = r.id AND ra.component = 'enrol_dbuserrel' AND c.contextlevel = " . CONTEXT_USER . " AND " .
-                " c.id = ra.contextid AND " .
-                " ra.userid = localsubject.id AND " .
-                " c.instanceid = localobject.id " .
-                ($subjectfilter ? " AND localsubject.id=" . $subjectfilter : "") .
-                ($objectfilter ? " AND localobject.id=" . $objectfilter : "");
+            $sql = "SELECT" . implode(",", array_unique($columns)) .
+            "FROM" . implode(",", array_unique($tables)) .
+            "WHERE ra.roleid = r.id
+            AND ra.component = :id
+            AND c.contextlevel = :context
+            AND c.id = ra.contextid
+            AND ra.userid = localsubject.id
+            AND c.instanceid = localobject.id" .
+            ($subjectfilter ? "AND localsubject.id = " . $subjectfilter : "") .
+            ($objectfilter ? "AND localobject.id = " . $objectfilter : "");
 
-            $sql = 'SELECT ? FROM ? WHERE ? AND ? AND ? AND ? AND ? AND ?, ? AND ?, ? AND ?',[implode(",", array_unique($columns)), implode(",", array_unique($tables)), ra.roleid = r.id,ra.component = 'enrol_dbuserrel', c.contextlevel = CONTEXT_USER, c.id = ra.contextid, ra.userid = localsubject.id,c.instanceid = localobject.id, ($subjectfilter ? " AND localsubject.id=" . $subjectfilter : ""),
-            ($objectfilter ? " AND localobject.id=" . $objectfilter : "")];
+            $DB->execute($sql, [
+                ':id' => 'enrol_dbuserrel',
+                ':context' => 'CONTEXT_USER'
+            ]);
 
             $existing = $DB->get_records_sql($sql);
 
