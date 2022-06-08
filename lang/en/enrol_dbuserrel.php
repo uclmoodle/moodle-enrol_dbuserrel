@@ -79,3 +79,4 @@ $string['failure_uidtranslate'] = 'Failed to translate Moodle user Id {$a->u} in
 $string['failure_uidtranslateprofile'] = 'Failed to translate Moodle user Id {$a->u} into a {$a->id} profile field value';
 $string['failure_moodleuidtrl'] = 'Unable to translate user table value {$a->v} to a Moodle user ID because {$a->err}';
 $string['failure_profilevaluetranslate'] = 'Unable to translate profile value {$a->v} to a Moodle user ID because {$a->err}';
+
