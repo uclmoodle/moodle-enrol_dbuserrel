@@ -32,7 +32,8 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
-class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_interface {
+class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_interface
+{
 
     /**
      * @var enrol_dbuserrel_field_interface
@@ -55,7 +56,8 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      * @param array $config
      * @throws \Exception
      */
-    public function __construct(array $config = []) {
+    public function __construct(array $config = [])
+    {
 
         // Todo: sanitise all input values.
         if (isset($config['localsubject'])) {
@@ -93,7 +95,8 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      * @return array
      * @throws dml_exception
      */
-    public function get_all_roles() {
+    public function get_all_roles()
+    {
         global $DB;
         return $DB->get_records('role', array(), '', "$this->localrolefield, id", 0, 0);
     }
@@ -101,21 +104,24 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
     /**
      * @return string
      */
-    public function get_role_fieldname() {
+    public function get_role_fieldname()
+    {
         return $this->localrolefield;
     }
 
     /**
      * @return string
      */
-    public function get_subject_fieldname() {
+    public function get_subject_fieldname()
+    {
         return $this->get_local_subject()->get_field_name();
     }
 
     /**
      * @return string
      */
-    public function get_object_fieldname() {
+    public function get_object_fieldname()
+    {
         return $this->get_local_object()->get_field_name();
     }
 
@@ -125,7 +131,8 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      * @return array|null
      * @throws Exception
      */
-    public function get_relationships_in_scope(?string $subjectfilter, ?string $objectfilter) {
+    public function get_relationships_in_scope(?string $subjectfilter, ?string $objectfilter)
+    {
         global $DB;
 
         $existingrelationships = array();
@@ -148,29 +155,34 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
             $tables[] = " {user} AS localsubject ";
             $tables[] = " {user} AS localobject ";
 
-            $sql = "SELECT" . implode(",", array_unique($columns)) .
-            "FROM" . implode(",", array_unique($tables)) .
-            "WHERE ra.roleid = r.id
-            AND ra.component = :id
-            AND c.contextlevel = :context
-            AND c.id = ra.contextid
-            AND ra.userid = localsubject.id
-            AND c.instanceid = localobject.id" .
-            ($subjectfilter ? "AND localsubject.id = " . $subjectfilter : "") .
-            ($objectfilter ? "AND localobject.id = " . $objectfilter : "");
+            $sql = " SELECT " .
+                implode(",", array_unique($columns)) .
+                " FROM " .
+                implode(",", array_unique($tables)) .
+                " WHERE
+                ra.roleid = r.id AND
+                ra.component = 'enrol_dbuserrel'
+                AND c.contextlevel = :usercontext AND
+                c.id = ra.contextid AND
+                ra.userid = localsubject.id AND
+                c.instanceid = localobject.id";
 
-            $DB->execute($sql, [
-                ':id' => 'enrol_dbuserrel',
-                ':context' => 'CONTEXT_USER'
-            ]);
+            $params = ['usercontext' => CONTEXT_USER];
+            if ($subjectfilter) {
+                $sql .= " AND localsubject.id = :subjectfilter";
+                $params['subjectfilter'] = $subjectfilter;
+            }
+            if ($objectfilter) {
+                $sql .= " AND localobject.id = :objectfilter";
+                $params['objectfilter'] = $objectfilter;
+            }
 
-            $existing = $DB->get_records_sql($sql);
+            $existing = $DB->get_records_sql($sql, $params);
 
             foreach ($existing as $record) {
                 // Key the array using unique keys in terms of userid.
-                 $existingrelationships[$record->uniq] = (array)$record;
+                $existingrelationships[$record->uniq] = (array)$record;
             }
-
         } catch (\Exception $e) {
             throw new \Exception(get_string('failure_getexistingrels', 'enrol_dbuserrel', $e->getMessage()));
         }
@@ -184,7 +196,8 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      * @param string $source
      * @return int|string|null
      */
-    public function get_equivalent_moodle_id($value, $source) {
+    public function get_equivalent_moodle_id($value, $source)
+    {
         if ($source == 'subject') {
             return $this->get_local_subject()->get_equivalent_moodle_id($value);
         } else if ($source == 'object') {
@@ -192,43 +205,45 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
         } else {
             return null;
         }
-
     }
 
 
     /**
      * Close connection
      */
-    public function shutdown() {
-
+    public function shutdown()
+    {
     }
 
     /**
      * @return enrol_dbuserrel_field_interface
      */
-    private function get_local_object(): enrol_dbuserrel_field_interface {
+    private function get_local_object(): enrol_dbuserrel_field_interface
+    {
         return $this->localobject;
     }
 
     /**
      * @param enrol_dbuserrel_field_interface $o
      */
-    private function set_local_object(enrol_dbuserrel_field_interface $o) {
+    private function set_local_object(enrol_dbuserrel_field_interface $o)
+    {
         $this->localobject = $o;
     }
 
     /**
      * @return enrol_dbuserrel_field_interface|null
      */
-    private function get_local_subject(): ?enrol_dbuserrel_field_interface {
+    private function get_local_subject(): ?enrol_dbuserrel_field_interface
+    {
         return $this->localsubject;
     }
 
     /**
      * @param enrol_dbuserrel_field_interface|null $o
      */
-    private function set_local_subject(?enrol_dbuserrel_field_interface $o) {
+    private function set_local_subject(?enrol_dbuserrel_field_interface $o)
+    {
         $this->localsubject = $o;
     }
-
 }
