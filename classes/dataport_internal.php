@@ -87,6 +87,8 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
         } else {
             throw new \Exception(get_string('failure_localrolenotset', 'enrol_dbuserrel'));
         }
+
+        $this->localrolefield = clean_param($this->localrolefield, PARAM_STRINGID);
     }
 
     /**
@@ -191,9 +193,9 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      */
     public function get_equivalent_moodle_id($value, $source) {
         if ($source == 'subject') {
-            return $this->get_local_subject()->get_equivalent_moodle_id($value);
+            return clean_param($this->get_local_subject()->get_equivalent_moodle_id($value), PARAM_STRINGID);
         } else if ($source == 'object') {
-            return $this->get_local_object()->get_equivalent_moodle_id($value);
+            return clean_param($this->get_local_object()->get_equivalent_moodle_id($value), PARAM_STRINGID);
         } else {
             return null;
         }
@@ -210,6 +212,7 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      * @return enrol_dbuserrel_field_interface
      */
     private function get_local_object(): enrol_dbuserrel_field_interface {
+
         return $this->localobject;
     }
 

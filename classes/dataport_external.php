@@ -115,6 +115,10 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
         if ($this->db == null) {
             throw new \Exception(get_string('failure_dbconn', 'enrol_dbuserrel'));
         }
+
+        $this->remotesubject = clean_param($this->remotesubject,PARAM_STRINGID);
+        $this->remoteobject = clean_param($this->remoteobject,PARAM_STRINGID);
+        $this->remoterolefield = clean_param($this->remoterolefield,PARAM_STRINGID);
     }
 
     /**
@@ -132,11 +136,10 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
                 " OR " . $this->remotesubject . "=" . $this->sanitise_literal_for_comparison($subjectfilter);
         }
 
-        $sql = $DB->get_records_sql('SELECT ? AS uniq, ? * FROM ?, ? WHERE 1=1, ? '. ($filter ? " AND (" . $filter . ")" : ""),[$this->db->concat($this->remoterolefield, "'|'", $this->remotesubject, "'|'", $this->remoteobject), 't', $this->table]);
+        $sql = "SELECT " .
+            $this->db->concat($this->remoterolefield, "'|'", $this->remotesubject, "'|'", $this->remoteobject) . " AS uniq,
+            "." t.* FROM " . $this->table . " t WHERE 1=1 " . ($filter ? " AND (" . $filter . ")" : "");
         $data = $this->db->GetAll($sql);
-
-        $sql = "SELECT ? AS uniq, ? * FROM ?, ? WHERE 1=1 " . ($filter ? " AND (" . $filter . ")" : "");
-        $data = $this->db->GetAll($sql,[$this->db->concat($this->remoterolefield, "'|'", $this->remotesubject , "'|'", $this->remoteobject), 't', $this->table]);
 
         if (is_array($data)) {
             foreach ($data as $record) {
@@ -154,7 +157,7 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
      * @return int|null
      */
     public function get_equivalent_moodle_id($value, $source) {
-        return $this->remote{$source}::get_equivalent_moodle_id($value);
+        return clean_param($this->remote[$source]::get_equivalent_moodle_id($value),PARAM_STRINGID);
     }
 
     /**
