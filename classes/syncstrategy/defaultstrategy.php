@@ -97,8 +97,8 @@ class defaultstrategy implements \enrol_dbuserrel_syncstrategy_interface {
                 $remotesubjectvalue = $row[$remotesubjectfield];
                 $remoteobjectvalue = $row[$remoteobjectfield];
 
-                $remotesubjectuserid = clean_param($this->internaldataport->get_equivalent_moodle_id($remotesubjectvalue, 'subject'),PARAM_STRINGID);
-                $remoteobjectuserid = clean_param($this->internaldataport->get_equivalent_moodle_id($remoteobjectvalue, 'object'),PARAM_STRINGID);
+                $remotesubjectuserid = clean_param($this->internaldataport->get_equivalent_moodle_id($remotesubjectvalue, 'subject'),PARAM_INT);
+                $remoteobjectuserid = clean_param($this->internaldataport->get_equivalent_moodle_id($remoteobjectvalue, 'object'),PARAM_INT);
 
                 $localkeyvalue = $row[$remoterolefield] . '|' . $remotesubjectuserid . '|' . $remoteobjectuserid;
 
