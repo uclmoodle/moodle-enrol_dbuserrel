@@ -36,10 +36,14 @@ class user implements \enrol_dbuserrel_field_interface {
     private static $mappableprofilefields = array();
 
     public function __construct(?string $fieldname) {
+        // Check if field name is set.
+        if (!$fieldname) {
+            return;
+        }
+
         if ((strlen($fieldname) > 0) && array_key_exists($fieldname, $this->get_mappable_profile_fields())) {
             $this->field = $this->get_mappable_profile_fields()[$fieldname];
         }
-
     }
 
     /**

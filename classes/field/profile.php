@@ -49,6 +49,10 @@ class profile implements \enrol_dbuserrel_field_interface {
      * @throws \dml_exception
      */
     public function __construct(?string $profilefielddbid) {
+        // Check if profile field is set.
+        if (!$profilefielddbid) {
+            return;
+        }
 
         if (strlen($profilefielddbid)) {
             $fieldid = trim($profilefielddbid);

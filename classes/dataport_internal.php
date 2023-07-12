@@ -193,9 +193,9 @@ class enrol_dbuserrel_dataport_internal implements enrol_dbuserrel_dataport_inte
      */
     public function get_equivalent_moodle_id($value, $source) {
         if ($source == 'subject') {
-            return clean_param($this->get_local_subject()->get_equivalent_moodle_id($value), PARAM_STRINGID);
+            return clean_param($this->get_local_subject()->get_equivalent_moodle_id($value), PARAM_INT);
         } else if ($source == 'object') {
-            return clean_param($this->get_local_object()->get_equivalent_moodle_id($value), PARAM_STRINGID);
+            return clean_param($this->get_local_object()->get_equivalent_moodle_id($value), PARAM_INT);
         } else {
             return null;
         }
