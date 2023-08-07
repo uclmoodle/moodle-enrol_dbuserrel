@@ -111,7 +111,7 @@ class enrol_dbuserrel_testcase extends advanced_testcase {
         $this->dbuserrelplugin->set_config('remotesubjectuserfield', 'remote_subject_id');
         $this->dbuserrelplugin->set_config('remoteobjectuserfield', 'remote_object_id');
         $this->dbuserrelplugin->set_config('remoterolefield', 'remote_role');
-        $this->dbuserrelplugin->set_config('debugdb', true);
+        $this->dbuserrelplugin->set_config('debugdb', false);
 
         $this->dbuserrelplugin->set_config('localsubjectuserfield', 'user_idnumber');
         $this->dbuserrelplugin->set_config('localobjectuserfield', 'user_idnumber');

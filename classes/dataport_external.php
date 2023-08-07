@@ -214,6 +214,9 @@ class enrol_dbuserrel_dataport_external implements enrol_dbuserrel_dataport_inte
         require_once($CFG->libdir.'/adodb/adodb.inc.php');
 
         // Connect to the external database (forcing new connection).
+        if ($dbtype === 'mariadb') {
+            $dbtype = 'mysqli' ;
+        }
         $extdb = ADONewConnection($dbtype);
         if ($debug) {
             $extdb->debug = true;
