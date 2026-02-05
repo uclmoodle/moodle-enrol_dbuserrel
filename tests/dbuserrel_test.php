@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/enrol/dbuserrel/lib.php');
  * @copyright  2019 Segun Babalola
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class enrol_dbuserrel_testcase extends advanced_testcase {
+class dbuserrel_test extends advanced_testcase {
 
     private $remotetablename;
     public $dbuserrelplugin;
